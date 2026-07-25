@@ -30,6 +30,7 @@ retries twice is correctly seen as the expensive one. This repository is the des
 | Cost model | Done | [docs/cost-model.md](./docs/cost-model.md) |
 | Attribution dimensions | Done | [docs/attribution.md](./docs/attribution.md) |
 | Instrumentation diagrams | Done | [docs/diagrams](./docs/diagrams) |
+| UI prototype (design mockup) | Done | [docs/prototype](./docs/prototype) |
 | Architecture Decision Records | 5 published | [docs/adr](./docs/adr) |
 | Reference implementation | Planned — Phase 3 | [ROADMAP.md](./ROADMAP.md) |
 

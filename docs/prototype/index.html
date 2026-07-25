@@ -1,0 +1,463 @@
+<title>LLM Cost Observability — Console</title>
+<style>
+  /* ===== shadcn/ui token system (zinc base) ===== */
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+    --success: 142 71% 40%;
+    --warning: 35 92% 45%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 10% 3.9%;
+    --radius: 0.625rem;
+    /* chart series (validated CVD-safe pair) */
+    --chart-cost: #0E9488;
+    --chart-cost-soft: rgba(14,148,136,0.12);
+    --chart-spend: #5566C4;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 4px 14px -2px rgb(0 0 0 / 0.05);
+    --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --background: 240 10% 3.9%;
+      --foreground: 0 0% 98%;
+      --card: 240 6% 10%;
+      --card-foreground: 0 0% 98%;
+      --popover: 240 6% 10%;
+      --popover-foreground: 0 0% 98%;
+      --primary: 0 0% 98%;
+      --primary-foreground: 240 5.9% 10%;
+      --secondary: 240 3.7% 15.9%;
+      --secondary-foreground: 0 0% 98%;
+      --muted: 240 3.7% 15.9%;
+      --muted-foreground: 240 5% 64.9%;
+      --accent: 240 3.7% 15.9%;
+      --accent-foreground: 0 0% 98%;
+      --destructive: 0 72% 58%;
+      --destructive-foreground: 0 0% 98%;
+      --success: 142 60% 50%;
+      --warning: 38 92% 58%;
+      --border: 240 3.7% 16.9%;
+      --input: 240 3.7% 18%;
+      --ring: 240 4.9% 83.9%;
+      --chart-cost: #12938A;
+      --chart-cost-soft: rgba(23,169,155,0.16);
+      --chart-spend: #6C77DE;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.4);
+      --shadow-md: 0 1px 3px 0 rgb(0 0 0 / 0.5), 0 8px 24px -4px rgb(0 0 0 / 0.5);
+    }
+  }
+  :root[data-theme="light"] {
+    --background: 0 0% 100%; --foreground: 240 10% 3.9%; --card: 0 0% 100%; --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%; --popover-foreground: 240 10% 3.9%; --primary: 240 5.9% 10%; --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%; --secondary-foreground: 240 5.9% 10%; --muted: 240 4.8% 95.9%; --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%; --accent-foreground: 240 5.9% 10%; --destructive: 0 72% 51%; --destructive-foreground: 0 0% 98%;
+    --success: 142 71% 40%; --warning: 35 92% 45%; --border: 240 5.9% 90%; --input: 240 5.9% 90%; --ring: 240 10% 3.9%;
+    --chart-cost: #0E9488; --chart-cost-soft: rgba(14,148,136,0.12); --chart-spend: #5566C4;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05); --shadow-md: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 4px 14px -2px rgb(0 0 0 / 0.05);
+  }
+  :root[data-theme="dark"] {
+    --background: 240 10% 3.9%; --foreground: 0 0% 98%; --card: 240 6% 10%; --card-foreground: 0 0% 98%;
+    --popover: 240 6% 10%; --popover-foreground: 0 0% 98%; --primary: 0 0% 98%; --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%; --secondary-foreground: 0 0% 98%; --muted: 240 3.7% 15.9%; --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%; --accent-foreground: 0 0% 98%; --destructive: 0 72% 58%; --destructive-foreground: 0 0% 98%;
+    --success: 142 60% 50%; --warning: 38 92% 58%; --border: 240 3.7% 16.9%; --input: 240 3.7% 18%; --ring: 240 4.9% 83.9%;
+    --chart-cost: #12938A; --chart-cost-soft: rgba(23,169,155,0.16); --chart-spend: #6C77DE;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.4); --shadow-md: 0 1px 3px 0 rgb(0 0 0 / 0.5), 0 8px 24px -4px rgb(0 0 0 / 0.5);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: hsl(var(--background)); color: hsl(var(--foreground));
+    font-family: var(--font-sans); font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased;
+  }
+  .tnum { font-variant-numeric: tabular-nums; }
+  code { font-family: var(--font-mono); font-size: 0.86em; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 22px clamp(14px, 3vw, 30px) 56px; }
+
+  /* header */
+  header.top { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .brand { display: flex; align-items: center; gap: 11px; }
+  .brand .logo { width: 30px; height: 30px; border-radius: calc(var(--radius) - 2px); background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground)); display: grid; place-items: center; font-weight: 700; font-size: 15px; flex: none; }
+  .brand h1 { font-size: 15px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+  .brand .sub { color: hsl(var(--muted-foreground)); font-weight: 400; }
+
+  /* badge */
+  .badge { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; border: 1px solid transparent;
+    padding: 2px 10px; font-size: 11.5px; font-weight: 600; line-height: 1.5; white-space: nowrap; }
+  .badge.outline { border-color: hsl(var(--border)); color: hsl(var(--muted-foreground)); background: transparent; }
+  .badge.secondary { background: hsl(var(--secondary)); color: hsl(var(--secondary-foreground)); }
+  .badge .dot { width: 6px; height: 6px; border-radius: 50%; flex: none; }
+  .badge.b-dest { background: hsl(var(--destructive) / 0.1); color: hsl(var(--destructive)); border-color: hsl(var(--destructive) / 0.22); }
+  .badge.b-dest .dot { background: hsl(var(--destructive)); }
+  .badge.b-warn { background: hsl(var(--warning) / 0.12); color: hsl(var(--warning)); border-color: hsl(var(--warning) / 0.25); }
+  .badge.b-warn .dot { background: hsl(var(--warning)); }
+  .badge.b-ok { background: hsl(var(--success) / 0.12); color: hsl(var(--success)); border-color: hsl(var(--success) / 0.25); }
+  .badge.b-ok .dot { background: hsl(var(--success)); }
+
+  /* button */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; font-family: var(--font-sans);
+    font-size: 13px; font-weight: 500; height: 36px; padding: 0 14px; border-radius: calc(var(--radius) - 2px);
+    border: 1px solid transparent; cursor: pointer; white-space: nowrap; transition: background .12s, color .12s, border-color .12s; }
+  .btn.outline { border-color: hsl(var(--border)); background: hsl(var(--background)); color: hsl(var(--foreground)); }
+  .btn.outline:hover { background: hsl(var(--accent)); }
+  .btn.primary { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+  .btn.primary:hover { background: hsl(var(--primary) / 0.9); }
+  .btn.ghost { background: transparent; color: hsl(var(--foreground)); }
+  .btn.ghost:hover { background: hsl(var(--accent)); }
+  .btn.sm { height: 32px; padding: 0 11px; font-size: 12.5px; }
+  .btn.icon { width: 36px; padding: 0; }
+
+  .lede { color: hsl(var(--muted-foreground)); font-size: 13px; margin: 10px 0 20px; max-width: 90ch; }
+  .lede b { color: hsl(var(--foreground)); font-weight: 500; }
+
+  /* filter row — shadcn select-trigger look + tabs */
+  .filters { display: flex; flex-wrap: wrap; gap: 9px; align-items: center; margin-bottom: 18px; }
+  .select { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px; font-size: 13px;
+    font-weight: 500; color: hsl(var(--foreground)); background: transparent; border: 1px solid hsl(var(--input));
+    border-radius: calc(var(--radius) - 2px); cursor: pointer; }
+  .select:hover { background: hsl(var(--accent)); }
+  .select .k { color: hsl(var(--muted-foreground)); font-weight: 400; }
+  .select .car { color: hsl(var(--muted-foreground)); font-size: 10px; margin-left: 2px; }
+  .spacer { flex: 1 1 auto; }
+  .tabs { display: inline-flex; align-items: center; height: 36px; background: hsl(var(--muted));
+    border-radius: calc(var(--radius) - 2px); padding: 3px; gap: 2px; }
+  .tabs button { font-family: var(--font-sans); font-size: 12.5px; font-weight: 500; color: hsl(var(--muted-foreground));
+    background: transparent; border: 0; border-radius: calc(var(--radius) - 4px); padding: 0 12px; height: 30px; cursor: pointer; }
+  .tabs button[aria-pressed="true"] { background: hsl(var(--background)); color: hsl(var(--foreground)); box-shadow: var(--shadow-sm); }
+
+  /* card */
+  .card { background: hsl(var(--card)); color: hsl(var(--card-foreground)); border: 1px solid hsl(var(--border));
+    border-radius: var(--radius); box-shadow: var(--shadow-sm); }
+
+  /* KPI grid */
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 14px; }
+  .kpi { padding: 18px 18px 16px; display: flex; flex-direction: column; gap: 9px; position: relative; }
+  .kpi .lab { font-size: 12px; color: hsl(var(--muted-foreground)); font-weight: 500; }
+  .kpi .val { font-size: 28px; font-weight: 620; letter-spacing: -0.02em; line-height: 1; }
+  .kpi .foot { font-size: 12px; color: hsl(var(--muted-foreground)); }
+  .kpi.flag { border-color: hsl(var(--destructive) / 0.45); }
+
+  .delta { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600;
+    padding: 2px 8px; border-radius: 999px; width: fit-content; }
+  .delta.dest { color: hsl(var(--destructive)); background: hsl(var(--destructive) / 0.1); }
+  .delta.warn { color: hsl(var(--warning)); background: hsl(var(--warning) / 0.12); }
+  .delta.mut { color: hsl(var(--muted-foreground)); background: hsl(var(--muted)); }
+  .delta small { opacity: .7; font-weight: 500; }
+
+  /* alert (destructive variant) */
+  .alert { display: flex; gap: 13px; padding: 15px 17px; margin-bottom: 14px;
+    border: 1px solid hsl(var(--destructive) / 0.5); border-radius: var(--radius);
+    background: hsl(var(--destructive) / 0.05); }
+  .alert .ico { width: 20px; height: 20px; color: hsl(var(--destructive)); flex: none; margin-top: 1px;
+    display: grid; place-items: center; border: 1.6px solid currentColor; border-radius: 50%; font-weight: 700; font-size: 13px; }
+  .alert .body { flex: 1 1 auto; min-width: 0; }
+  .alert .h { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .alert .h strong { font-size: 14px; font-weight: 600; color: hsl(var(--destructive)); }
+  .alert .h .meta { font-size: 12px; color: hsl(var(--muted-foreground)); }
+  .alert p { margin: 6px 0 0; font-size: 13px; color: hsl(var(--foreground) / 0.85); max-width: 76ch; }
+  .alert .acts { display: flex; gap: 8px; margin-top: 12px; }
+
+  /* two columns */
+  .cols { display: grid; grid-template-columns: 1.55fr 1fr; gap: 14px; align-items: start; }
+  .chd { padding: 16px 18px 0; }
+  .chd .t { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+  .chd .s { font-size: 12.5px; color: hsl(var(--muted-foreground)); margin-top: 2px; }
+  .legend { display: flex; gap: 16px; padding: 10px 18px 2px; font-size: 12px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; color: hsl(var(--muted-foreground)); font-weight: 500; }
+  .legend i { width: 13px; height: 3px; border-radius: 2px; }
+
+  .chartbox { position: relative; padding: 6px 14px 14px; }
+  svg.chart { width: 100%; height: auto; display: block; }
+  .tick { fill: hsl(var(--muted-foreground)); font-family: var(--font-sans); font-size: 10px; }
+  .glabel { font-family: var(--font-sans); font-size: 10px; }
+  .endlab { font-family: var(--font-sans); font-size: 11px; font-weight: 700; }
+  .guide { stroke: hsl(var(--muted-foreground)); stroke-width: 1; stroke-dasharray: 3 3; opacity: 0; }
+
+  .tip { position: absolute; pointer-events: none; opacity: 0; transform: translate(-50%, -100%);
+    background: hsl(var(--popover)); color: hsl(var(--popover-foreground)); border: 1px solid hsl(var(--border));
+    border-radius: calc(var(--radius) - 2px); padding: 9px 11px; font-size: 12px; box-shadow: var(--shadow-md);
+    white-space: nowrap; z-index: 5; transition: opacity .08s; min-width: 132px; }
+  .tip .dt { font-size: 11px; color: hsl(var(--muted-foreground)); margin-bottom: 6px; font-weight: 500; }
+  .tip .r { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .tip .r + .r { margin-top: 4px; }
+  .tip .lbl { display: inline-flex; align-items: center; gap: 7px; color: hsl(var(--muted-foreground)); }
+  .tip .lbl i { width: 9px; height: 3px; border-radius: 2px; }
+  .tip .num { font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  /* table */
+  .tbl-wrap { overflow-x: auto; padding: 8px 8px 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 440px; }
+  thead th { text-align: right; font-size: 12px; color: hsl(var(--muted-foreground)); font-weight: 500;
+    padding: 8px 12px; height: 40px; }
+  thead th:first-child { text-align: left; }
+  tbody td { padding: 12px; border-top: 1px solid hsl(var(--border)); text-align: right; }
+  tbody td:first-child { text-align: left; }
+  tbody tr:hover td { background: hsl(var(--muted) / 0.5); }
+  tbody td.num { font-variant-numeric: tabular-nums; }
+  tbody tr.tot td { border-top: 1px solid hsl(var(--border)); font-weight: 600; }
+  tbody tr.tot:hover td { background: transparent; }
+  tbody tr.tot td:first-child { color: hsl(var(--muted-foreground)); font-weight: 500; }
+
+  footer { margin-top: 26px; padding-top: 16px; border-top: 1px solid hsl(var(--border));
+    color: hsl(var(--muted-foreground)); font-size: 12px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  footer a { color: hsl(var(--foreground)); text-decoration: none; font-weight: 500; }
+  footer a:hover { text-decoration: underline; }
+
+  :focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; border-radius: 6px; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  @media (max-width: 860px) { .kpis { grid-template-columns: repeat(2, 1fr); } .cols { grid-template-columns: 1fr; } }
+  @media (max-width: 460px) { .kpis { grid-template-columns: 1fr; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">$</span>
+      <h1>LLM Cost Observability <span class="sub">/ console</span></h1>
+      <span class="badge secondary">Prototype · synthetic data</span>
+    </div>
+    <button class="btn outline sm" id="themeBtn" aria-label="Toggle colour theme">
+      <span id="themeIco" aria-hidden="true">◐</span><span id="themeTxt">Theme</span>
+    </button>
+  </header>
+
+  <p class="lede">Design mockup for the <b>llm-cost-observability</b> repository — cost attributed at the call,
+    measured as <b>cost per successful outcome</b>, watched with anomaly alerts. Built on the shadcn/ui token system.
+    Figures are illustrative.</p>
+
+  <div class="filters">
+    <button class="select"><span class="k">Feature</span> All <span class="car">▾</span></button>
+    <button class="select"><span class="k">Tenant</span> All <span class="car">▾</span></button>
+    <button class="select"><span class="k">Route</span> All <span class="car">▾</span></button>
+    <span class="spacer"></span>
+    <div class="tabs" role="group" aria-label="Time range">
+      <button aria-pressed="false">24h</button>
+      <button aria-pressed="false">7d</button>
+      <button aria-pressed="true">14d</button>
+      <button aria-pressed="false">30d</button>
+    </div>
+  </div>
+
+  <div class="kpis">
+    <div class="card kpi flag">
+      <span class="lab">Cost / successful outcome</span>
+      <span class="val tnum">$0.083</span>
+      <span class="delta dest">▲ 182% <small>7d</small></span>
+      <span class="foot">the unit that exposes waste</span>
+    </div>
+    <div class="card kpi">
+      <span class="lab">Total spend · 14d</span>
+      <span class="val tnum">$48.2k</span>
+      <span class="delta mut">▲ 6% <small>7d</small></span>
+      <span class="foot">roughly flat — hides the problem</span>
+    </div>
+    <div class="card kpi">
+      <span class="lab">Waste share</span>
+      <span class="val tnum">34%</span>
+      <span class="delta warn">▲ from 12%</span>
+      <span class="foot">retries + abandoned work</span>
+    </div>
+    <div class="card kpi">
+      <span class="lab">Open anomalies</span>
+      <span class="val tnum">1</span>
+      <span class="badge b-dest"><span class="dot"></span> 1 critical</span>
+      <span class="foot">checkout-summary · Acme Corp</span>
+    </div>
+  </div>
+
+  <div class="alert" role="alert">
+    <div class="ico" aria-hidden="true">!</div>
+    <div class="body">
+      <div class="h">
+        <strong>Retry storm — checkout-summary</strong>
+        <span class="meta">tenant Acme Corp · route <code>/v2/summarise</code> · detected 2h ago</span>
+      </div>
+      <p>Cost per outcome is up <b style="color:hsl(var(--destructive))">182%</b> while total spend rose only
+        <b>6%</b>. A wave of failed calls is being retried, so the money buys re-work, not outcomes.
+        A total-spend dashboard would show nothing.</p>
+      <div class="acts">
+        <button class="btn primary sm">View trace</button>
+        <button class="btn outline sm">Acknowledge</button>
+        <button class="btn ghost sm">Set budget</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div class="card">
+      <div class="chd">
+        <div class="t">Cost per outcome vs total spend</div>
+        <div class="s">Indexed to 100 · a total-spend view stays flat while the unit cost climbs — the gap is waste.</div>
+      </div>
+      <div class="legend">
+        <span><i style="background:var(--chart-cost)"></i> Cost / outcome</span>
+        <span><i style="background:var(--chart-spend)"></i> Total spend</span>
+      </div>
+      <div class="chartbox" id="chartbox">
+        <svg class="chart" viewBox="0 0 720 300" preserveAspectRatio="xMidYMid meet" role="img"
+             aria-label="Indexed cost per outcome climbs to 282 while total spend stays near 106 over 14 days.">
+          <g id="grid"></g>
+          <rect x="423" y="20" width="237" height="230" fill="hsl(var(--destructive))" opacity="0.05"></rect>
+          <text x="424" y="33" class="glabel" fill="hsl(var(--destructive))">anomaly window</text>
+          <path id="costArea" fill="var(--chart-cost-soft)" stroke="none"></path>
+          <polyline id="spendLine" fill="none" stroke="var(--chart-spend)" stroke-width="1.6"
+                    stroke-linejoin="round" stroke-linecap="round"></polyline>
+          <polyline id="costLine" fill="none" stroke="var(--chart-cost)" stroke-width="2.4"
+                    stroke-linejoin="round" stroke-linecap="round"></polyline>
+          <line id="guide" class="guide" y1="20" y2="250"></line>
+          <circle id="dotCost" r="3.6" fill="var(--chart-cost)" opacity="0"></circle>
+          <circle id="dotSpend" r="3.2" fill="var(--chart-spend)" opacity="0"></circle>
+          <circle cx="660" cy="38.8" r="3.6" fill="var(--chart-cost)" stroke="hsl(var(--card))" stroke-width="1.5"></circle>
+          <text x="651" y="33" text-anchor="end" class="endlab" fill="var(--chart-cost)">282</text>
+          <circle cx="660" cy="222.8" r="3.2" fill="var(--chart-spend)" stroke="hsl(var(--card))" stroke-width="1.5"></circle>
+          <text x="651" y="218" text-anchor="end" class="endlab" fill="var(--chart-spend)">106</text>
+          <g id="xlabels"></g>
+          <rect id="hit" x="44" y="20" width="616" height="230" fill="transparent" style="cursor:crosshair"></rect>
+        </svg>
+        <div class="tip" id="tip"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="chd"><div class="t">By feature</div><div class="s">Last 14 days</div></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr><th>Feature</th><th>Spend</th><th>$ / outcome</th><th>Waste</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>checkout-summary</code></td>
+              <td class="num">$16.4k</td><td class="num">$0.190</td><td class="num">61%</td>
+              <td><span class="badge b-dest"><span class="dot"></span> Critical</span></td>
+            </tr>
+            <tr>
+              <td><code>support-router</code></td>
+              <td class="num">$7.8k</td><td class="num">$0.052</td><td class="num">27%</td>
+              <td><span class="badge b-warn"><span class="dot"></span> Watch</span></td>
+            </tr>
+            <tr>
+              <td><code>doc-qa</code></td>
+              <td class="num">$11.7k</td><td class="num">$0.038</td><td class="num">14%</td>
+              <td><span class="badge b-ok"><span class="dot"></span> Healthy</span></td>
+            </tr>
+            <tr>
+              <td><code>search-rerank</code></td>
+              <td class="num">$9.1k</td><td class="num">$0.021</td><td class="num">9%</td>
+              <td><span class="badge b-ok"><span class="dot"></span> Healthy</span></td>
+            </tr>
+            <tr>
+              <td><code>onboarding-assist</code></td>
+              <td class="num">$3.2k</td><td class="num">$0.044</td><td class="num">12%</td>
+              <td><span class="badge b-ok"><span class="dot"></span> Healthy</span></td>
+            </tr>
+            <tr class="tot">
+              <td>Blended</td><td class="num">$48.2k</td><td class="num">$0.083</td><td class="num">34%</td><td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <span>Design prototype · docs-first mockup · shadcn/ui token system · not a live product.</span>
+    <span><a href="https://github.com/prodrigues2023/llm-cost-observability">prodrigues2023/llm-cost-observability</a></span>
+  </footer>
+</div>
+
+<script>
+  const root = document.documentElement, tb = document.getElementById('themeBtn');
+  const tIco = document.getElementById('themeIco'), tTxt = document.getElementById('themeTxt');
+  function isDark() {
+    return root.getAttribute('data-theme')
+      ? root.getAttribute('data-theme') === 'dark'
+      : matchMedia('(prefers-color-scheme: dark)').matches;
+  }
+  function sync() { const d = isDark(); tIco.textContent = d ? '☾' : '☀'; tTxt.textContent = d ? 'Dark' : 'Light'; }
+  tb.addEventListener('click', () => { root.setAttribute('data-theme', isDark() ? 'light' : 'dark'); sync(); });
+  sync();
+
+  document.querySelectorAll('.tabs').forEach(seg => {
+    seg.addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b) return;
+      seg.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    });
+  });
+
+  const PADL = 44, PADR = 60, W = 720, N = 14;
+  const x0 = PADL, xN = W - PADR, step = (xN - x0) / (N - 1);
+  const vMin = 80, vMax = 300, yTop = 20, yBot = 250;
+  const sx = i => x0 + i * step;
+  const sy = v => yBot - (v - vMin) / (vMax - vMin) * (yBot - yTop);
+  const days = ['Jul 11','Jul 12','Jul 13','Jul 14','Jul 15','Jul 16','Jul 17','Jul 18','Jul 19','Jul 20','Jul 21','Jul 22','Jul 23','Jul 24'];
+  const spend = [100,101,99,103,100,102,98,104,101,103,106,104,107,106];
+  const cost  = [100,98,102,99,101,100,103,101,118,145,190,232,268,282];
+
+  const grid = document.getElementById('grid');
+  [100,150,200,250,300].forEach(v => {
+    const y = sy(v);
+    const ln = document.createElementNS('http://www.w3.org/2000/svg','line');
+    ln.setAttribute('x1', x0); ln.setAttribute('x2', xN); ln.setAttribute('y1', y); ln.setAttribute('y2', y);
+    ln.setAttribute('stroke', 'hsl(var(--border))'); ln.setAttribute('stroke-width', v===100?1:0.8);
+    if (v!==100) ln.setAttribute('stroke-dasharray','2 4');
+    grid.appendChild(ln);
+    const tx = document.createElementNS('http://www.w3.org/2000/svg','text');
+    tx.setAttribute('x', x0 - 8); tx.setAttribute('y', y + 3); tx.setAttribute('text-anchor','end');
+    tx.setAttribute('class','tick'); tx.textContent = v; grid.appendChild(tx);
+  });
+  const xl = document.getElementById('xlabels');
+  [0,3,6,9,13].forEach(i => {
+    const tx = document.createElementNS('http://www.w3.org/2000/svg','text');
+    tx.setAttribute('x', sx(i)); tx.setAttribute('y', yBot + 16);
+    tx.setAttribute('text-anchor', i===13?'end':(i===0?'start':'middle'));
+    tx.setAttribute('class','tick'); tx.textContent = days[i]; xl.appendChild(tx);
+  });
+  document.getElementById('costLine').setAttribute('points', cost.map((v,i)=>`${sx(i)},${sy(v)}`).join(' '));
+  document.getElementById('spendLine').setAttribute('points', spend.map((v,i)=>`${sx(i)},${sy(v)}`).join(' '));
+  document.getElementById('costArea').setAttribute('d',
+    `M ${sx(0)},${yBot} L ` + cost.map((v,i)=>`${sx(i)},${sy(v)}`).join(' L ') + ` L ${sx(N-1)},${yBot} Z`);
+
+  const svg = document.querySelector('svg.chart'), hit = document.getElementById('hit');
+  const guide = document.getElementById('guide'), tip = document.getElementById('tip');
+  const dC = document.getElementById('dotCost'), dS = document.getElementById('dotSpend');
+  const box = document.getElementById('chartbox');
+  function place(evt) {
+    const r = svg.getBoundingClientRect(), scale = r.width / W;
+    let i = Math.round(((evt.clientX - r.left) / scale - x0) / step);
+    i = Math.max(0, Math.min(N-1, i));
+    const gx = sx(i);
+    guide.setAttribute('x1', gx); guide.setAttribute('x2', gx); guide.style.opacity = 1;
+    dC.setAttribute('cx', gx); dC.setAttribute('cy', sy(cost[i])); dC.style.opacity = 1;
+    dS.setAttribute('cx', gx); dS.setAttribute('cy', sy(spend[i])); dS.style.opacity = 1;
+    tip.innerHTML = `<div class="dt">${days[i]}</div>`+
+      `<div class="r"><span class="lbl"><i style="background:var(--chart-cost)"></i>Cost / outcome</span><span class="num">${cost[i]}</span></div>`+
+      `<div class="r"><span class="lbl"><i style="background:var(--chart-spend)"></i>Total spend</span><span class="num">${spend[i]}</span></div>`;
+    const bx = box.getBoundingClientRect();
+    tip.style.left = ((gx * scale) + (r.left - bx.left)) + 'px';
+    tip.style.top = ((Math.min(sy(cost[i]), sy(spend[i])) * scale) + (r.top - bx.top) - 10) + 'px';
+    tip.style.opacity = 1;
+  }
+  hit.addEventListener('mousemove', place);
+  hit.addEventListener('mouseleave', () => {
+    guide.style.opacity = 0; tip.style.opacity = 0; dC.style.opacity = 0; dS.style.opacity = 0;
+  });
+</script>
