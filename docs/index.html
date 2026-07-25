@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LLM Cost Observability — docs-first reference</title>
+<style>
+  :root {
+    --background:0 0% 100%; --foreground:240 10% 3.9%; --card:0 0% 100%; --muted:240 4.8% 95.9%;
+    --muted-foreground:240 3.8% 46.1%; --primary:240 5.9% 10%; --primary-foreground:0 0% 98%;
+    --secondary:240 4.8% 95.9%; --secondary-foreground:240 5.9% 10%; --border:240 5.9% 90%; --ring:240 10% 3.9%;
+    --brand:#0E9488; --radius:0.625rem; --shadow-sm:0 1px 2px 0 rgb(0 0 0 / .05);
+    --shadow-md:0 1px 3px 0 rgb(0 0 0 / .06), 0 8px 24px -4px rgb(0 0 0 / .06);
+    --font-sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --font-mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --background:240 10% 3.9%; --foreground:0 0% 98%; --card:240 6% 10%; --muted:240 3.7% 15.9%;
+    --muted-foreground:240 5% 64.9%; --primary:0 0% 98%; --primary-foreground:240 5.9% 10%;
+    --secondary:240 3.7% 15.9%; --secondary-foreground:0 0% 98%; --border:240 3.7% 16.9%; --ring:240 4.9% 83.9%;
+    --brand:#17A99B; --shadow-sm:0 1px 2px 0 rgb(0 0 0 / .4); --shadow-md:0 8px 24px -4px rgb(0 0 0 / .5);
+  }}
+  *{box-sizing:border-box}
+  body{margin:0;background:hsl(var(--background));color:hsl(var(--foreground));font-family:var(--font-sans);
+    line-height:1.5;-webkit-font-smoothing:antialiased;display:flex;min-height:100vh}
+  .wrap{max-width:680px;margin:auto;padding:56px 24px}
+  code{font-family:var(--font-mono);font-size:.86em}
+  .brand{display:flex;align-items:center;gap:11px;margin-bottom:26px}
+  .logo{width:34px;height:34px;border-radius:calc(var(--radius) - 2px);background:hsl(var(--primary));
+    color:hsl(var(--primary-foreground));display:grid;place-items:center;font-weight:700;font-size:17px}
+  .brand .n{font-family:var(--font-mono);font-size:14px;font-weight:600}
+  .badge{display:inline-flex;align-items:center;border-radius:999px;border:1px solid hsl(var(--border));
+    padding:2px 10px;font-size:11.5px;font-weight:600;color:hsl(var(--muted-foreground));margin-left:auto}
+  h1{font-size:29px;line-height:1.2;letter-spacing:-0.02em;margin:0 0 14px;font-weight:660}
+  .lede{color:hsl(var(--muted-foreground));font-size:15px;margin:0 0 30px}
+  .card{background:hsl(var(--card));border:1px solid hsl(var(--border));border-radius:var(--radius);
+    box-shadow:var(--shadow-sm);padding:22px;margin-bottom:22px}
+  .card .k{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:hsl(var(--muted-foreground));
+    font-weight:650;margin-bottom:8px}
+  .card h2{font-size:17px;margin:0 0 7px;font-weight:620}
+  .card p{margin:0 0 18px;font-size:13.5px;color:hsl(var(--muted-foreground))}
+  .btn{display:inline-flex;align-items:center;gap:9px;height:44px;padding:0 20px;border-radius:calc(var(--radius) - 1px);
+    background:hsl(var(--primary));color:hsl(var(--primary-foreground));text-decoration:none;font-size:14px;font-weight:600;
+    border:1px solid transparent;transition:filter .12s}
+  .btn:hover{filter:brightness(1.08)}
+  .btn .ar{font-size:16px}
+  .links{display:flex;flex-wrap:wrap;gap:8px}
+  .lnk{display:inline-flex;align-items:center;gap:7px;height:38px;padding:0 14px;border-radius:calc(var(--radius) - 2px);
+    border:1px solid hsl(var(--border));color:hsl(var(--foreground));text-decoration:none;font-size:13px;font-weight:500}
+  .lnk:hover{background:hsl(var(--muted))}
+  footer{color:hsl(var(--muted-foreground));font-size:12px;margin-top:30px;border-top:1px solid hsl(var(--border));padding-top:16px}
+  a.plain{color:hsl(var(--brand));text-decoration:none;font-weight:500}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="brand">
+      <span class="logo">$</span>
+      <span class="n">llm-cost-observability</span>
+      <span class="badge">docs-first</span>
+    </div>
+    <h1>LLM spend is an operational signal, not a monthly surprise.</h1>
+    <p class="lede">Cost attributed at the call — by feature, tenant, and route — and measured as
+      <b>cost per successful outcome</b>, not per token. A reference architecture, documented first.</p>
+
+    <div class="card">
+      <div class="k">Interactive prototype</div>
+      <h2>Cost console</h2>
+      <p>Cost per outcome beside total spend, with a retry-storm anomaly where the unit cost climbs
+        while spend stays flat — the regression a total-spend view would miss.</p>
+      <a class="btn" href="./prototype/">Open the interactive prototype <span class="ar">→</span></a>
+    </div>
+
+    <div class="links">
+      <a class="lnk" href="https://github.com/prodrigues2023/llm-cost-observability">View on GitHub</a>
+      <a class="lnk" href="https://github.com/prodrigues2023/llm-cost-observability/tree/main/docs/adr">Architecture decisions</a>
+      <a class="lnk" href="https://github.com/prodrigues2023/llm-cost-observability/blob/main/ROADMAP.md">Roadmap</a>
+    </div>
+
+    <footer>Design prototype · synthetic data · part of a docs-first reference-architecture collection by
+      <a class="plain" href="https://github.com/prodrigues2023">prodrigues2023</a>.</footer>
+  </div>
+</body>
+</html>
