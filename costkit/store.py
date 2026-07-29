@@ -289,14 +289,14 @@ class CostStore:
     def recent_events(self, limit: int = 50) -> list[dict]:
         rows = self._conn.execute(
             "SELECT event_id, outcome_id, feature, tenant, route, model_tier, prompt_version, "
-            "attempt_number, input_tokens, output_tokens, cached_input_tokens, computed_cost, "
-            "call_status, timestamp FROM cost_events ORDER BY timestamp DESC LIMIT ?",
+            "attempt_number, input_tokens, output_tokens, cached_input_tokens, price_basis_id, "
+            "computed_cost, call_status, timestamp FROM cost_events ORDER BY timestamp DESC LIMIT ?",
             (limit,),
         ).fetchall()
         columns = [
             "event_id", "outcome_id", "feature", "tenant", "route", "model_tier", "prompt_version",
-            "attempt_number", "input_tokens", "output_tokens", "cached_input_tokens", "computed_cost",
-            "call_status", "timestamp",
+            "attempt_number", "input_tokens", "output_tokens", "cached_input_tokens", "price_basis_id",
+            "computed_cost", "call_status", "timestamp",
         ]
         return [dict(zip(columns, row)) for row in rows]
 

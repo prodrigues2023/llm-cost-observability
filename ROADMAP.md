@@ -83,12 +83,28 @@ The anomaly detector is a deliberately simple rolling-baseline ratio, not a stat
 
 **Goal:** prove the alerts and the unit cost catch the failures that a bill hides.
 
-| Issue | Deliverable |
-| --- | --- |
-| Cost regression drill | Swap in a pricier path; assert the anomaly alert fires |
-| Retry storm | Inject failures and retries; assert cost-per-outcome rises while spend looks flat |
-| Context bloat | Pad context; show the waste as unit cost, not just total spend |
-| Attribution accuracy | Reconcile attributed cost against the total; assert they agree |
+| Issue | Deliverable | Status |
+| --- | --- | --- |
+| Cost regression drill | Swap in a pricier path; assert the anomaly alert fires | Done — [cost-regression-drill.md](./docs/validation/cost-regression-drill.md) |
+| Retry storm | Inject failures and retries; assert cost-per-outcome rises while spend looks flat | Done — [retry-storm-drill.md](./docs/validation/retry-storm-drill.md) |
+| Context bloat | Pad context; show the waste as unit cost, not just total spend | Done — [context-bloat-drill.md](./docs/validation/context-bloat-drill.md) |
+| Attribution accuracy | Reconcile attributed cost against the total; assert they agree | Done — [attribution-reconciliation-drill.md](./docs/validation/attribution-reconciliation-drill.md) |
 
-**Exit criteria:** a cost regression and a retry storm are both caught by the design in minutes, and
-the attributed total reconciles with the bill.
+**Exit criteria met, enforced by `make test` on every push, not just asserted in a report.** Each
+drill is a real run against data `costkit` itself generated:
+
+- **Cost regression** — `support-triage` silently moved onto a pricier model tier (token volume
+  and failure rate unchanged) is caught by the anomaly detector at a >1.3x ratio.
+- **Retry storm** — an 85% failure rate for `checkout-assistant` raises cost per outcome ~170%
+  while hourly spend rises only ~116% — the exact "spend looks flat, unit cost doesn't" gap this
+  repository exists to close, measured, not asserted.
+- **Context bloat** — 5x input tokens for `doc-summarizer` raises cost per outcome with success
+  rate staying >95%, proving the effect is real token waste, not a disguised retry storm.
+- **Attribution reconciliation** — every stored event's cost reproduces exactly from its own
+  stored tokens and price basis; the grand total agrees with the sum across every attribution
+  slice. This is "reconciles with the bill" checked the only way possible without a real provider
+  invoice — see [the drill's own disclosure](./docs/validation/attribution-reconciliation-drill.md)
+  of that scope limit.
+
+Full account, including why each drill's failure signature is distinct from the others, in
+[docs/validation/README.md](./docs/validation/README.md).

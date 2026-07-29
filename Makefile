@@ -1,4 +1,4 @@
-.PHONY: up down test lint type-check console
+.PHONY: up down test lint type-check console validate drills
 
 up:
 	docker compose up -d --build
@@ -20,7 +20,19 @@ test:
 	pytest tests/ -q
 
 lint:
-	ruff check costkit console tests
+	ruff check costkit console tests eval
 
 type-check:
 	mypy costkit --ignore-missing-imports
+
+# Milestone 4: regenerates docs/validation/*.md. The pass/fail claim
+# itself is enforced by `make test`'s tests/test_validation_drills.py;
+# this just re-runs and republishes the reports.
+drills:
+	pip install -r requirements.txt > /dev/null
+	python -m eval.run_cost_regression_drill
+	python -m eval.run_retry_storm_drill
+	python -m eval.run_context_bloat_drill
+	python -m eval.run_attribution_reconciliation
+
+validate: test lint type-check drills

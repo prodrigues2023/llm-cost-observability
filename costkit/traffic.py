@@ -49,6 +49,36 @@ class RetryStorm:
     failure_rate: float = 0.6
 
 
+@dataclass(frozen=True)
+class ContextBloat:
+    """Multiplies input tokens for one feature within a time window --
+    docs/cost-model.md's "context bloat" waste, distinct from a retry
+    storm: every call still succeeds first try, so failure-rate-based
+    detection would miss it entirely. Only cost-per-outcome catches it,
+    because total spend rising from more legitimate-looking traffic reads
+    as "a big task", per cost-model.md's waste table.
+    """
+
+    feature: str
+    starts_at: datetime
+    ends_at: datetime
+    multiplier: float = 4.0
+
+
+@dataclass(frozen=True)
+class ModelDowngrade:
+    """Forces a feature onto one specific model tier within a time window --
+    the "cost regression" drill's shape: a deploy that quietly swapped in
+    a pricier (or just wrong) tier for a task that didn't need it. Unlike
+    ContextBloat this doesn't change token volume, only the price basis.
+    """
+
+    feature: str
+    starts_at: datetime
+    ends_at: datetime
+    model_tier: str = "large"
+
+
 @dataclass
 class TrafficConfig:
     start: datetime
@@ -56,6 +86,8 @@ class TrafficConfig:
     num_tasks: int = 600
     seed: int = 42
     retry_storm: RetryStorm | None = None
+    context_bloat: ContextBloat | None = None
+    model_downgrade: ModelDowngrade | None = None
     base_failure_rate: float = 0.03
 
 
@@ -95,6 +127,13 @@ def generate_traffic(store: CostStore, rates: RateTable, config: TrafficConfig) 
         prompt_version = rng.choice(PROMPT_VERSIONS)
         outcome_id = f"{feature}-{tenant}-{opened_at.timestamp():.6f}-{rng.randint(0, 999999)}"
 
+        if (
+            config.model_downgrade is not None
+            and feature == config.model_downgrade.feature
+            and config.model_downgrade.starts_at <= opened_at <= config.model_downgrade.ends_at
+        ):
+            model_tier = config.model_downgrade.model_tier
+
         failure_rate = config.base_failure_rate
         if (
             config.retry_storm is not None
@@ -106,6 +145,15 @@ def generate_traffic(store: CostStore, rates: RateTable, config: TrafficConfig) 
         profile = _profile_for(model_tier, failure_rate)
         model = StubModelClient({model_tier: profile}, rng=random.Random(rng.randint(0, 2**31)))
         boundary = InstrumentationBoundary(model, rates, store)
+
+        input_tokens_override = None
+        if (
+            config.context_bloat is not None
+            and feature == config.context_bloat.feature
+            and config.context_bloat.starts_at <= opened_at <= config.context_bloat.ends_at
+        ):
+            baseline_input = rng.randint(*profile.input_tokens_range)
+            input_tokens_override = int(baseline_input * config.context_bloat.multiplier)
 
         store.open_outcome(
             Outcome(
@@ -125,7 +173,12 @@ def generate_traffic(store: CostStore, rates: RateTable, config: TrafficConfig) 
         ):
             for attempt in range(1, MAX_ATTEMPTS + 1):
                 try:
-                    boundary.call(model_tier, attempt_number=attempt, at=call_time)
+                    boundary.call(
+                        model_tier,
+                        attempt_number=attempt,
+                        at=call_time,
+                        input_tokens_override=input_tokens_override,
+                    )
                     task_succeeded = True
                     break
                 except CallFailedError:

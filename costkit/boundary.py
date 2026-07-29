@@ -35,7 +35,11 @@ class InstrumentationBoundary:
         self._store = store
 
     def call(
-        self, model_tier: str, attempt_number: int = 1, at: datetime | None = None
+        self,
+        model_tier: str,
+        attempt_number: int = 1,
+        at: datetime | None = None,
+        input_tokens_override: int | None = None,
     ) -> BoundaryResult:
         """Makes one model call and emits exactly one cost event for it.
 
@@ -43,13 +47,16 @@ class InstrumentationBoundary:
         only job is to have set them, not to pass them here. `at` defaults
         to now; it is overridable so synthetic/historical traffic can be
         generated with realistic timestamps instead of wall-clock time.
+        `input_tokens_override` exists for the same reason -- Milestone 4's
+        context-bloat drill needs to force a specific input size rather
+        than the stub's normal random range.
         """
         dims = context.current()
         now = at or datetime.now(timezone.utc)
         basis = self._rates.lookup(model_tier, now)
 
         try:
-            response = self._model.call(model_tier)
+            response = self._model.call(model_tier, input_tokens_override=input_tokens_override)
         except ModelCallError as exc:
             # Billed for the input and whatever partial output the
             # provider already processed, per stub_model.py's

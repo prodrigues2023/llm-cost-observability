@@ -4,7 +4,7 @@
 > tenant, and request that caused it — and measure cost per successful outcome, not cost per token.
 > Documented first, provider-neutral, implemented in the open.
 
-[![Phase](https://img.shields.io/badge/phase-3%20reference%20implementation-blue)](./ROADMAP.md)
+[![Phase](https://img.shields.io/badge/phase-4%20validation-blue)](./ROADMAP.md)
 [![ADRs](https://img.shields.io/badge/ADRs-6-green)](./docs/adr)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey)](./LICENSE)
 
@@ -36,6 +36,7 @@ retries twice is correctly seen as the expensive one. This repository is the des
 | Architecture Decision Records | 6 published | [docs/adr](./docs/adr) |
 | Contracts — cost-event schema, outcome contract, pricing abstraction | Done | [docs/contracts](./docs/contracts) |
 | Reference implementation — boundary, pricing, outcomes, budgets/anomalies, console | Done, 36 tests | [costkit](./costkit), [console](./console), [ROADMAP.md](./ROADMAP.md#milestone-3--reference-implementation) |
+| Validation — cost regression, retry storm, context bloat, attribution reconciliation drills | Done, 4 more tests, enforced on every push | [docs/validation](./docs/validation), [ROADMAP.md](./ROADMAP.md#milestone-4--validation) |
 
 ## The idea
 
@@ -81,7 +82,9 @@ Four phases, tracked as GitHub milestones. See [ROADMAP.md](./ROADMAP.md).
 3. **Reference implementation** — a boundary, pricing, outcome tracking, budgets/anomaly detection,
    and a dashboard, all real and tested (`make up`) — done, see
    [console/README.md](./console/README.md) for what's real versus stubbed
-4. **Validation** — inject a cost regression and a retry storm; assert the alerts and unit cost catch them
+4. **Validation** — four drills (cost regression, retry storm, context bloat, attribution
+   reconciliation), each a real run whose pass/fail claim is enforced by `make test` on every
+   push — done, see [docs/validation](./docs/validation)
 
 ## Related
 
