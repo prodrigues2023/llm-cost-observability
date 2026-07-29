@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LLM Cost Observability — Console</title>
+<style>
+  :root {
+    --background: 0 0% 100%; --foreground: 240 10% 3.9%; --card: 0 0% 100%; --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%; --popover-foreground: 240 10% 3.9%; --primary: 240 5.9% 10%; --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%; --secondary-foreground: 240 5.9% 10%; --muted: 240 4.8% 95.9%; --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%; --accent-foreground: 240 5.9% 10%; --destructive: 0 72% 51%; --destructive-foreground: 0 0% 98%;
+    --success: 142 71% 40%; --warning: 35 92% 45%; --border: 240 5.9% 90%; --input: 240 5.9% 90%; --ring: 240 10% 3.9%;
+    --radius: 0.625rem;
+    --chart-cost: #0E9488; --chart-cost-soft: rgba(14,148,136,0.12); --chart-spend: #5566C4;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05); --shadow-md: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 4px 14px -2px rgb(0 0 0 / 0.05);
+    --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --background: 240 10% 3.9%; --foreground: 0 0% 98%; --card: 240 6% 10%; --card-foreground: 0 0% 98%;
+      --popover: 240 6% 10%; --popover-foreground: 0 0% 98%; --primary: 0 0% 98%; --primary-foreground: 240 5.9% 10%;
+      --secondary: 240 3.7% 15.9%; --secondary-foreground: 0 0% 98%; --muted: 240 3.7% 15.9%; --muted-foreground: 240 5% 64.9%;
+      --accent: 240 3.7% 15.9%; --accent-foreground: 0 0% 98%; --destructive: 0 72% 58%; --destructive-foreground: 0 0% 98%;
+      --success: 142 60% 50%; --warning: 38 92% 58%; --border: 240 3.7% 16.9%; --input: 240 3.7% 18%; --ring: 240 4.9% 83.9%;
+      --chart-cost: #12938A; --chart-cost-soft: rgba(23,169,155,0.16); --chart-spend: #6C77DE;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.4); --shadow-md: 0 1px 3px 0 rgb(0 0 0 / 0.5), 0 8px 24px -4px rgb(0 0 0 / 0.5);
+    }
+  }
+  :root[data-theme="light"] {
+    --background: 0 0% 100%; --foreground: 240 10% 3.9%; --card: 0 0% 100%; --card-foreground: 240 10% 3.9%;
+    --muted: 240 4.8% 95.9%; --muted-foreground: 240 3.8% 46.1%; --border: 240 5.9% 90%;
+    --chart-cost: #0E9488; --chart-spend: #5566C4;
+  }
+  :root[data-theme="dark"] {
+    --background: 240 10% 3.9%; --foreground: 0 0% 98%; --card: 240 6% 10%; --card-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%; --muted-foreground: 240 5% 64.9%; --border: 240 3.7% 16.9%;
+    --chart-cost: #12938A; --chart-spend: #6C77DE;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: hsl(var(--background)); color: hsl(var(--foreground));
+    font-family: var(--font-sans); font-size: 14px; line-height: 1.5; }
+  .tnum { font-variant-numeric: tabular-nums; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 22px clamp(14px, 3vw, 30px) 56px; }
+
+  header.top { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 6px; }
+  .brand { display: flex; align-items: center; gap: 11px; }
+  .brand .logo { width: 30px; height: 30px; border-radius: calc(var(--radius) - 2px); background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground)); display: grid; place-items: center; font-weight: 700; font-size: 15px; flex: none; }
+  .brand h1 { font-size: 15px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+  .brand .sub { color: hsl(var(--muted-foreground)); font-weight: 400; }
+
+  .badge { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; border: 1px solid transparent;
+    padding: 2px 10px; font-size: 11.5px; font-weight: 600; line-height: 1.5; white-space: nowrap; }
+  .badge .dot { width: 6px; height: 6px; border-radius: 50%; flex: none; }
+  .badge.b-dest { background: hsl(var(--destructive) / 0.1); color: hsl(var(--destructive)); border-color: hsl(var(--destructive) / 0.22); }
+  .badge.b-dest .dot { background: hsl(var(--destructive)); }
+  .badge.b-warn { background: hsl(var(--warning) / 0.12); color: hsl(var(--warning)); border-color: hsl(var(--warning) / 0.25); }
+  .badge.b-warn .dot { background: hsl(var(--warning)); }
+  .badge.b-ok { background: hsl(var(--success) / 0.12); color: hsl(var(--success)); border-color: hsl(var(--success) / 0.25); }
+  .badge.b-ok .dot { background: hsl(var(--success)); }
+
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; font-family: var(--font-sans);
+    font-size: 13px; font-weight: 500; height: 36px; padding: 0 14px; border-radius: calc(var(--radius) - 2px);
+    border: 1px solid transparent; cursor: pointer; white-space: nowrap; }
+  .btn.outline { border-color: hsl(var(--border)); background: hsl(var(--background)); color: hsl(var(--foreground)); }
+  .btn.outline:hover { background: hsl(var(--accent)); }
+  .btn.primary { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+  .btn.primary:hover { opacity: .92; }
+  .btn:disabled { opacity: .5; cursor: default; }
+
+  .lede { color: hsl(var(--muted-foreground)); font-size: 13px; margin: 10px 0 20px; max-width: 90ch; }
+  .lede b { color: hsl(var(--foreground)); font-weight: 500; }
+
+  .filters { display: flex; flex-wrap: wrap; gap: 9px; align-items: center; margin-bottom: 18px; }
+  .tabs { display: inline-flex; align-items: center; height: 36px; background: hsl(var(--muted));
+    border-radius: calc(var(--radius) - 2px); padding: 3px; gap: 2px; }
+  .tabs button { font-family: var(--font-sans); font-size: 12.5px; font-weight: 500; color: hsl(var(--muted-foreground));
+    background: transparent; border: 0; border-radius: calc(var(--radius) - 4px); padding: 0 12px; height: 30px; cursor: pointer; }
+  .tabs button[aria-pressed="true"] { background: hsl(var(--background)); color: hsl(var(--foreground)); box-shadow: var(--shadow-sm); }
+  .spacer { flex: 1 1 auto; }
+
+  .card { background: hsl(var(--card)); color: hsl(var(--card-foreground)); border: 1px solid hsl(var(--border));
+    border-radius: var(--radius); box-shadow: var(--shadow-sm); }
+
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 14px; }
+  .kpi { padding: 18px 18px 16px; display: flex; flex-direction: column; gap: 9px; }
+  .kpi .lab { font-size: 12px; color: hsl(var(--muted-foreground)); font-weight: 500; }
+  .kpi .val { font-size: 28px; font-weight: 620; letter-spacing: -0.02em; line-height: 1; }
+  .kpi .foot { font-size: 12px; color: hsl(var(--muted-foreground)); }
+  .kpi.flag { border-color: hsl(var(--destructive) / 0.45); }
+
+  .alert { display: flex; gap: 13px; padding: 15px 17px; margin-bottom: 14px;
+    border: 1px solid hsl(var(--destructive) / 0.5); border-radius: var(--radius);
+    background: hsl(var(--destructive) / 0.05); }
+  .alert .ico { width: 20px; height: 20px; color: hsl(var(--destructive)); flex: none; margin-top: 1px;
+    display: grid; place-items: center; border: 1.6px solid currentColor; border-radius: 50%; font-weight: 700; font-size: 13px; }
+  .alert .body { flex: 1 1 auto; min-width: 0; }
+  .alert .h { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .alert .h strong { font-size: 14px; font-weight: 600; color: hsl(var(--destructive)); }
+  .alert .h .meta { font-size: 12px; color: hsl(var(--muted-foreground)); }
+  .alert p { margin: 6px 0 0; font-size: 13px; color: hsl(var(--foreground) / 0.85); max-width: 76ch; }
+
+  .cols { display: grid; grid-template-columns: 1.55fr 1fr; gap: 14px; align-items: start; margin-bottom: 14px; }
+  .chd { padding: 16px 18px 0; }
+  .chd .t { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+  .chd .s { font-size: 12.5px; color: hsl(var(--muted-foreground)); margin-top: 2px; }
+  .legend { display: flex; gap: 16px; padding: 10px 18px 2px; font-size: 12px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; color: hsl(var(--muted-foreground)); font-weight: 500; }
+  .legend i { width: 13px; height: 3px; border-radius: 2px; display: inline-block; }
+
+  .chartbox { padding: 6px 14px 14px; }
+  svg.chart { width: 100%; height: auto; display: block; }
+  .tick { fill: hsl(var(--muted-foreground)); font-family: var(--font-sans); font-size: 10px; }
+
+  .tbl-wrap { overflow-x: auto; padding: 8px 8px 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 440px; }
+  thead th { text-align: right; font-size: 12px; color: hsl(var(--muted-foreground)); font-weight: 500;
+    padding: 8px 12px; height: 40px; }
+  thead th:first-child { text-align: left; }
+  tbody td { padding: 12px; border-top: 1px solid hsl(var(--border)); text-align: right; }
+  tbody td:first-child { text-align: left; }
+  tbody tr:hover td { background: hsl(var(--muted) / 0.5); }
+
+  footer { margin-top: 26px; padding-top: 16px; border-top: 1px solid hsl(var(--border));
+    font-size: 12px; color: hsl(var(--muted-foreground)); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+  a { color: inherit; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="logo">$</div>
+      <h1>LLM Cost Observability <span class="sub">— Console</span></h1>
+    </div>
+    <div class="filters">
+      <button class="btn outline" id="refresh-btn">Refresh</button>
+      <button class="btn primary" id="storm-btn">Trigger retry-storm demo</button>
+    </div>
+  </header>
+  <p class="lede">
+    Spend and <b>cost per successful outcome</b> attributed at the call, per
+    <a href="../docs/contracts/cost-event-schema.md">the cost-event schema</a> — last 24h of synthetic traffic
+    through the real instrumentation boundary. Not sample data: every number below is aggregated from
+    cost events this console's own stub model actually produced.
+  </p>
+
+  <div id="anomaly-alerts"></div>
+
+  <div class="kpis" id="kpis">
+    <div class="card kpi"><div class="lab">Total spend (24h)</div><div class="val tnum">—</div></div>
+    <div class="card kpi"><div class="lab">Blended cost / outcome</div><div class="val tnum">—</div></div>
+    <div class="card kpi"><div class="lab">Succeeded outcomes</div><div class="val tnum">—</div></div>
+    <div class="card kpi"><div class="lab">Unattributed events</div><div class="val tnum">—</div></div>
+  </div>
+
+  <div class="cols">
+    <div class="card">
+      <div class="chd">
+        <div class="t">Cost per outcome — checkout-assistant</div>
+        <div class="s">15-minute buckets, last 8 hours. The retry-storm demo raises the last hour.</div>
+      </div>
+      <div class="legend"><span><i style="background: var(--chart-cost)"></i>cost per outcome</span></div>
+      <div class="chartbox"><svg class="chart" id="timeseries-chart" viewBox="0 0 640 220" preserveAspectRatio="none"></svg></div>
+    </div>
+    <div class="card">
+      <div class="chd">
+        <div class="t">Budgets</div>
+        <div class="s">Per-dimension thresholds, ADR-0005.</div>
+      </div>
+      <div class="tbl-wrap" id="budgets-table"><em style="color:hsl(var(--muted-foreground))">Loading…</em></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="chd">
+      <div class="t">Attribution</div>
+      <div class="s">Spend and cost per outcome, sliced by dimension — never just a global total.</div>
+    </div>
+    <div class="tabs" style="margin: 14px 18px 0;">
+      <button aria-pressed="true" data-dim="feature">Feature</button>
+      <button aria-pressed="false" data-dim="tenant">Tenant</button>
+      <button aria-pressed="false" data-dim="route">Route</button>
+      <button aria-pressed="false" data-dim="model_tier">Model tier</button>
+    </div>
+    <div class="tbl-wrap" id="attribution-table"><em style="color:hsl(var(--muted-foreground))">Loading…</em></div>
+  </div>
+
+  <footer>
+    <span>costkit — reference implementation of <a href="../docs/contracts">docs/contracts</a></span>
+    <span>Stubbed model, synthetic traffic, no cloud account — see <a href="../ROADMAP.md">ROADMAP.md</a></span>
+  </footer>
+</div>
+
+<script>
+const fmtUSD = (n) => n == null ? '—' : '$' + n.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 6});
+const fmtInt = (n) => n == null ? '—' : n.toLocaleString('en-US');
+
+let currentDimension = 'feature';
+
+async function loadSummary() {
+  const r = await fetch('/api/summary');
+  const d = await r.json();
+  const kpis = document.querySelectorAll('#kpis .kpi .val');
+  kpis[0].textContent = fmtUSD(d.total_spend_24h);
+  kpis[1].textContent = fmtUSD(d.blended_cost_per_outcome_24h);
+  kpis[2].textContent = fmtInt(d.outcome_status_counts.succeeded || 0);
+  kpis[3].textContent = fmtInt(d.unattributed_events_24h);
+  const unattributedKpi = kpis[3].closest('.kpi');
+  unattributedKpi.classList.toggle('flag', (d.unattributed_events_24h || 0) > 0);
+}
+
+async function loadAttribution(dimension) {
+  const r = await fetch('/api/attribution?dimension=' + dimension);
+  const rows = await r.json();
+  const table = document.getElementById('attribution-table');
+  if (!rows.length) { table.innerHTML = '<em style="color:hsl(var(--muted-foreground))">No data yet.</em>'; return; }
+  const head = `<tr><th>${dimension}</th><th>Total spend</th><th>Succeeded outcomes</th><th>Total outcomes</th><th>Cost / outcome</th></tr>`;
+  const body = rows.map(r => `
+    <tr>
+      <td>${r[dimension]}</td>
+      <td class="num tnum">${fmtUSD(r.total_spend)}</td>
+      <td class="num tnum">${fmtInt(r.succeeded_outcomes)}</td>
+      <td class="num tnum">${fmtInt(r.total_outcomes)}</td>
+      <td class="num tnum">${fmtUSD(r.cost_per_outcome)}</td>
+    </tr>`).join('');
+  table.innerHTML = `<table><thead>${head}</thead><tbody>${body}</tbody></table>`;
+}
+
+async function loadBudgets() {
+  const r = await fetch('/api/budgets');
+  const breaches = await r.json();
+  const table = document.getElementById('budgets-table');
+  if (!breaches.length) {
+    table.innerHTML = '<div style="padding: 14px 18px;"><span class="badge b-ok"><i class="dot"></i>No budget breaches</span></div>';
+    return;
+  }
+  const rows = breaches.map(b => `
+    <tr>
+      <td>${b.dimension}=${b.value}</td>
+      <td class="num tnum">${b.metric}</td>
+      <td class="num tnum">${fmtUSD(b.actual)}</td>
+      <td class="num tnum">${fmtUSD(b.threshold)}</td>
+    </tr>`).join('');
+  table.innerHTML = `<table><thead><tr><th>Slice</th><th>Metric</th><th>Actual</th><th>Threshold</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+async function loadAnomalies() {
+  const r = await fetch('/api/anomalies');
+  const anomalies = await r.json();
+  const container = document.getElementById('anomaly-alerts');
+  container.innerHTML = anomalies.map(a => `
+    <div class="alert">
+      <div class="ico">!</div>
+      <div class="body">
+        <div class="h"><strong>Cost anomaly: ${a.value}</strong><span class="meta">cost per outcome up ${(a.ratio * 100 - 100).toFixed(0)}%</span></div>
+        <p>Baseline ${fmtUSD(a.baseline_cost_per_outcome)} per outcome vs. ${fmtUSD(a.recent_cost_per_outcome)} in the last hour.
+        Spend alone would not have shown this — see <a href="../docs/adr/0005-budgets-and-alerts.md">ADR-0005</a>.</p>
+      </div>
+    </div>`).join('');
+}
+
+async function loadTimeseries() {
+  const r = await fetch('/api/timeseries?dimension=feature&value=checkout-assistant&hours=8&bucket_minutes=15');
+  const rows = await r.json();
+  const svg = document.getElementById('timeseries-chart');
+  const W = 640, H = 220, padL = 50, padB = 24, padT = 10, padR = 14;
+  const values = rows.map(r => r.cost_per_outcome).filter(v => v != null);
+  if (!values.length) { svg.innerHTML = ''; return; }
+  const maxV = Math.max(...values) * 1.15;
+  const n = rows.length;
+  const x = (i) => padL + (i / Math.max(n - 1, 1)) * (W - padL - padR);
+  const y = (v) => H - padB - (v / maxV) * (H - padT - padB);
+
+  let points = [];
+  rows.forEach((r, i) => { if (r.cost_per_outcome != null) points.push([x(i), y(r.cost_per_outcome)]); });
+  const path = points.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+
+  const gridlines = [0, 0.25, 0.5, 0.75, 1].map(f => {
+    const v = maxV * f;
+    const yy = y(v);
+    return `<line x1="${padL}" y1="${yy}" x2="${W - padR}" y2="${yy}" stroke="hsl(var(--border))" stroke-width="1"/>
+            <text class="tick" x="${padL - 8}" y="${yy + 3}" text-anchor="end">${v.toFixed(4)}</text>`;
+  }).join('');
+
+  const xLabels = rows.filter((_, i) => i % Math.ceil(n / 6) === 0).map(r => {
+    const i = rows.indexOf(r);
+    const t = new Date(r.bucket_start);
+    return `<text class="tick" x="${x(i)}" y="${H - 6}" text-anchor="middle">${t.getHours()}:${String(t.getMinutes()).padStart(2,'0')}</text>`;
+  }).join('');
+
+  svg.innerHTML = `${gridlines}${xLabels}<path d="${path}" fill="none" stroke="var(--chart-cost)" stroke-width="2.2"/>`;
+}
+
+async function refreshAll() {
+  await Promise.all([loadSummary(), loadAttribution(currentDimension), loadBudgets(), loadAnomalies(), loadTimeseries()]);
+}
+
+document.querySelectorAll('.tabs button[data-dim]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tabs button[data-dim]').forEach(b => b.setAttribute('aria-pressed', 'false'));
+    btn.setAttribute('aria-pressed', 'true');
+    currentDimension = btn.dataset.dim;
+    loadAttribution(currentDimension);
+  });
+});
+
+document.getElementById('refresh-btn').addEventListener('click', refreshAll);
+document.getElementById('storm-btn').addEventListener('click', async (e) => {
+  e.target.disabled = true;
+  e.target.textContent = 'Running…';
+  await fetch('/api/demo/retry-storm', { method: 'POST' });
+  await refreshAll();
+  e.target.disabled = false;
+  e.target.textContent = 'Trigger retry-storm demo';
+});
+
+refreshAll();
+setInterval(refreshAll, 30000);
+</script>
+</body>
+</html>

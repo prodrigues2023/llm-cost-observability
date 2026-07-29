@@ -4,7 +4,7 @@
 > tenant, and request that caused it — and measure cost per successful outcome, not cost per token.
 > Documented first, provider-neutral, implemented in the open.
 
-[![Phase](https://img.shields.io/badge/phase-2%20contracts-blue)](./ROADMAP.md)
+[![Phase](https://img.shields.io/badge/phase-3%20reference%20implementation-blue)](./ROADMAP.md)
 [![ADRs](https://img.shields.io/badge/ADRs-6-green)](./docs/adr)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey)](./LICENSE)
 
@@ -22,6 +22,8 @@ retries twice is correctly seen as the expensive one. This repository is the des
 
 ---
 
+![The console mid-retry-storm: an anomaly alert, a budget breach, and cost-per-outcome visibly spiking for checkout-assistant while total spend barely moves](./docs/screenshots/console.png)
+
 ## What is here today
 
 | Area | Status | Link |
@@ -33,7 +35,7 @@ retries twice is correctly seen as the expensive one. This repository is the des
 | UI prototype (design mockup) | Done | [▶ live demo](https://prodrigues2023.github.io/llm-cost-observability/prototype/) · [source](./docs/prototype) |
 | Architecture Decision Records | 6 published | [docs/adr](./docs/adr) |
 | Contracts — cost-event schema, outcome contract, pricing abstraction | Done | [docs/contracts](./docs/contracts) |
-| Reference implementation | Planned — Phase 3 | [ROADMAP.md](./ROADMAP.md) |
+| Reference implementation — boundary, pricing, outcomes, budgets/anomalies, console | Done, 36 tests | [costkit](./costkit), [console](./console), [ROADMAP.md](./ROADMAP.md#milestone-3--reference-implementation) |
 
 ## The idea
 
@@ -76,7 +78,9 @@ Four phases, tracked as GitHub milestones. See [ROADMAP.md](./ROADMAP.md).
 
 1. **Design** — the cost model, the attribution dimensions, the instrumentation point, the ADRs — done
 2. **Contracts** — the cost-event schema, the outcome contract, and the pricing abstraction — done
-3. **Reference implementation** — a boundary that captures cost events and a dashboard over them
+3. **Reference implementation** — a boundary, pricing, outcome tracking, budgets/anomaly detection,
+   and a dashboard, all real and tested (`make up`) — done, see
+   [console/README.md](./console/README.md) for what's real versus stubbed
 4. **Validation** — inject a cost regression and a retry storm; assert the alerts and unit cost catch them
 
 ## Related

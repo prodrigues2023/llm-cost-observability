@@ -1,0 +1,10 @@
+# No persistent volume: the console regenerates its 24h of synthetic
+# traffic fresh on every start (costkit's stub model, no cloud account,
+# no real data to lose). SQLite runs in-memory inside the container --
+# writing thousands of seed rows to a file over a Docker volume driver is
+# needlessly slow for data that is synthetic and disposable anyway.
+services:
+  console:
+    build: .
+    ports:
+      - "8000:8000"

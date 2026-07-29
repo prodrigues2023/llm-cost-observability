@@ -53,16 +53,29 @@ Backed by [ADR-0006](./docs/adr/0006-cost-event-schema-and-pricing-abstraction.m
 
 **Goal:** `make up` runs a boundary that emits cost events and a dashboard that attributes them.
 
-| Issue | Deliverable |
-| --- | --- |
-| Instrumentation boundary | Capture tokens and dimensions at one pass-through point |
-| Cost event pipeline | Enrich with price, store, aggregate |
-| Attribution dashboard | Spend and unit cost by feature, tenant, route |
-| Budget and alerting | A budget per dimension and an anomaly alert |
-| Local environment | One command, stubbed model, synthetic traffic, no cloud account |
+| Issue | Deliverable | Status |
+| --- | --- | --- |
+| Instrumentation boundary | Capture tokens and dimensions at one pass-through point | Done — [costkit/boundary.py](./costkit/boundary.py) |
+| Cost event pipeline | Enrich with price, store, aggregate | Done — [costkit/store.py](./costkit/store.py) |
+| Attribution dashboard | Spend and unit cost by feature, tenant, route | Done — [console](./console) |
+| Budget and alerting | A budget per dimension and an anomaly alert | Done — [costkit/budgets.py](./costkit/budgets.py) |
+| Local environment | One command, stubbed model, synthetic traffic, no cloud account | Done — `make up` |
 
-**Exit criteria:** a first-time reader sees spend attributed to a feature and a tenant, and a unit
-cost that rises when retries are injected.
+**Exit criteria met, and verified for real, not asserted.** 36 tests exercise the schema, outcome
+state machine, pricing formula, boundary, synthetic traffic, and budget/anomaly detectors —
+including a test that proves a retried task's cost per outcome is measurably higher than a clean
+task's, computed from real `CostEvent`/`Outcome` rows, not a canned fixture. The console's own
+"Trigger retry-storm demo" button reproduces the exit criterion live: spend for the affected
+feature barely moves while its cost per outcome visibly spikes on the dashboard, and the
+`AvailabilityFastBurn`-style budget/anomaly detectors both fire against that real data. Full
+account in [console/README.md](./console/README.md).
+
+**What Milestone 3 does not claim:** the model itself is stubbed — `costkit.stub_model.StubModelClient`
+stands in for a real provider, per ROADMAP's own "stubbed model, synthetic traffic, no cloud
+account" scope for this milestone. Swapping in a real provider client is the only change
+[ADR-0004](./docs/adr/0004-instrument-at-the-boundary.md) says a real deployment needs to make.
+The anomaly detector is a deliberately simple rolling-baseline ratio, not a statistical model —
+[ADR-0005](./docs/adr/0005-budgets-and-alerts.md) already named that as unsolved work.
 
 ---
 

@@ -4,7 +4,7 @@
 > tenant e à requisição que o causou — e meça custo por resultado bem-sucedido, não custo por token.
 > Documentado primeiro, neutro de fornecedor, implementado em público.
 
-[![Fase](https://img.shields.io/badge/fase-2%20contratos-blue)](./ROADMAP.md)
+[![Fase](https://img.shields.io/badge/fase-3%20implementa%C3%A7%C3%A3o%20de%20refer%C3%AAncia-blue)](./ROADMAP.md)
 [![ADRs](https://img.shields.io/badge/ADRs-6-green)](./docs/adr)
 [![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-lightgrey)](./LICENSE)
 
@@ -22,6 +22,8 @@ tenta de novo duas vezes seja corretamente visto como o caro. Este repositório 
 
 ---
 
+![O console durante uma tempestade de retries: um alerta de anomalia, uma violação de budget, e o custo por resultado disparando visivelmente para checkout-assistant enquanto o gasto total quase não se move](./docs/screenshots/console.png)
+
 ## O que já existe
 
 | Área | Status | Link |
@@ -32,7 +34,7 @@ tenta de novo duas vezes seja corretamente visto como o caro. Este repositório 
 | Diagramas de instrumentação | Pronto | [docs/diagrams](./docs/diagrams) |
 | Registros de Decisão de Arquitetura | 6 publicados | [docs/adr](./docs/adr) |
 | Contratos — schema de evento de custo, contrato de resultado, abstração de precificação | Pronto | [docs/contracts](./docs/contracts) |
-| Implementação de referência | Planejada — Fase 3 | [ROADMAP.md](./ROADMAP.md) |
+| Implementação de referência — boundary, precificação, outcomes, budgets/anomalias, console | Pronto, 36 testes | [costkit](./costkit), [console](./console), [ROADMAP.md](./ROADMAP.md#milestone-3--reference-implementation) |
 
 ## A ideia
 
@@ -67,7 +69,9 @@ Quatro fases, acompanhadas como milestones no GitHub. Detalhes em [ROADMAP.md](.
 
 1. **Design** — o modelo de custo, as dimensões de atribuição, o ponto de instrumentação, os ADRs — concluído
 2. **Contratos** — o schema do evento de custo, o contrato de resultado e a abstração de precificação — concluído
-3. **Implementação de referência** — um boundary que captura eventos de custo e um painel sobre eles
+3. **Implementação de referência** — um boundary, precificação, rastreamento de outcomes,
+   budgets/detecção de anomalia e um painel, tudo real e testado (`make up`) — concluído, veja
+   [console/README.md](./console/README.md) para o que é real versus stub
 4. **Validação** — injetar uma regressão de custo e uma tempestade de retries; provar que os alertas pegam
 
 ## Relacionados

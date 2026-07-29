@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Contract-compliance tests -- schema, outcome state machine, pricing, boundary, traffic, budgets
+        run: pytest tests/ -q
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - run: ruff check costkit console tests
+
+  type-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - run: mypy costkit --ignore-missing-imports
+
+  console-smoke-test:
+    runs-on: ubuntu-latest
+    needs: [test, lint, type-check]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Boots the console, seeds synthetic traffic, and checks every API route returns real data
+        run: |
+          python -m uvicorn console.app:app --host 127.0.0.1 --port 8000 &
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:8000/api/summary > /dev/null && break; sleep 1; done
+          python -c "
+          import json, urllib.request
+
+          def get(path):
+              with urllib.request.urlopen(f'http://127.0.0.1:8000{path}') as r:
+                  return json.load(r)
+
+          summary = get('/api/summary')
+          assert summary['total_spend_24h'] > 0, summary
+          assert summary['outcome_status_counts'].get('succeeded', 0) > 0, summary
+
+          attribution = get('/api/attribution?dimension=feature')
+          assert len(attribution) == 3, attribution
+          assert all(row['cost_per_outcome'] is not None for row in attribution), attribution
+
+          timeseries = get('/api/timeseries?dimension=feature&value=checkout-assistant')
+          assert len(timeseries) > 0, timeseries
+
+          # Budgets/anomalies are lists, empty is a valid (no-breach) state --
+          # just confirm the routes work.
+          assert isinstance(get('/api/budgets'), list)
+          assert isinstance(get('/api/anomalies'), list)
+
+          print('console: all routes returned real, non-empty data where expected')
+          "
