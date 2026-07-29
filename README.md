@@ -4,8 +4,8 @@
 > tenant, and request that caused it — and measure cost per successful outcome, not cost per token.
 > Documented first, provider-neutral, implemented in the open.
 
-[![Phase](https://img.shields.io/badge/phase-1%20design-blue)](./ROADMAP.md)
-[![ADRs](https://img.shields.io/badge/ADRs-5-green)](./docs/adr)
+[![Phase](https://img.shields.io/badge/phase-2%20contracts-blue)](./ROADMAP.md)
+[![ADRs](https://img.shields.io/badge/ADRs-6-green)](./docs/adr)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey)](./LICENSE)
 
 Most teams learn what their AI features cost from the bill — one number, a month late, with no way to
@@ -31,7 +31,8 @@ retries twice is correctly seen as the expensive one. This repository is the des
 | Attribution dimensions | Done | [docs/attribution.md](./docs/attribution.md) |
 | Instrumentation diagrams | Done | [docs/diagrams](./docs/diagrams) |
 | UI prototype (design mockup) | Done | [▶ live demo](https://prodrigues2023.github.io/llm-cost-observability/prototype/) · [source](./docs/prototype) |
-| Architecture Decision Records | 5 published | [docs/adr](./docs/adr) |
+| Architecture Decision Records | 6 published | [docs/adr](./docs/adr) |
+| Contracts — cost-event schema, outcome contract, pricing abstraction | Done | [docs/contracts](./docs/contracts) |
 | Reference implementation | Planned — Phase 3 | [ROADMAP.md](./ROADMAP.md) |
 
 ## The idea
@@ -73,8 +74,8 @@ settle on paper than to backfill across a live system.
 
 Four phases, tracked as GitHub milestones. See [ROADMAP.md](./ROADMAP.md).
 
-1. **Design** — the cost model, the attribution dimensions, the instrumentation point, the ADRs
-2. **Contracts** — the cost-event schema and the outcome contract that defines a successful task
+1. **Design** — the cost model, the attribution dimensions, the instrumentation point, the ADRs — done
+2. **Contracts** — the cost-event schema, the outcome contract, and the pricing abstraction — done
 3. **Reference implementation** — a boundary that captures cost events and a dashboard over them
 4. **Validation** — inject a cost regression and a retry storm; assert the alerts and unit cost catch them
 

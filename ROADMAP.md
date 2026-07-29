@@ -32,15 +32,20 @@ instead, and every decision traces to attribution-at-the-source.
 
 **Goal:** the formats are specified, so a producer and a dashboard integrate consistently.
 
-| Issue | Deliverable |
-| --- | --- |
-| Cost-event schema | Tokens, price basis, dimensions, timestamp, outcome |
-| Outcome contract | What marks a call part of a successful task versus waste |
-| Pricing abstraction | How a token count becomes a cost without hard-coding a provider |
-| ADR-0006 | Cost-event schema and pricing abstraction |
+| Issue | Deliverable | Status |
+| --- | --- | --- |
+| Cost-event schema | Tokens, price basis, dimensions, timestamp, outcome | Done — [cost-event-schema.md](./docs/contracts/cost-event-schema.md) |
+| Outcome contract | What marks a call part of a successful task versus waste | Done — [outcome-contract.md](./docs/contracts/outcome-contract.md) |
+| Pricing abstraction | How a token count becomes a cost without hard-coding a provider | Done — [pricing-abstraction.md](./docs/contracts/pricing-abstraction.md) |
+| ADR-0006 | Cost-event schema and pricing abstraction | Done — [0006](./docs/adr/0006-cost-event-schema-and-pricing-abstraction.md) |
 
-**Exit criteria:** a producer and a consumer could be built independently against the contracts and
-agree on every number.
+**Exit criteria met** — the three contracts compose rather than restating each other: the
+cost-event schema's `outcome_id` is exactly the outcome contract's correlation key, and its
+`price_basis_id` is exactly the pricing abstraction's rate-table reference. A reviewer checks a
+Milestone 3 producer against the three documents field by field, the same test named in
+[docs/contracts/README.md](./docs/contracts/README.md).
+
+Backed by [ADR-0006](./docs/adr/0006-cost-event-schema-and-pricing-abstraction.md).
 
 ---
 

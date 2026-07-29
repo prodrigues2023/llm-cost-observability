@@ -4,8 +4,8 @@
 > tenant e à requisição que o causou — e meça custo por resultado bem-sucedido, não custo por token.
 > Documentado primeiro, neutro de fornecedor, implementado em público.
 
-[![Fase](https://img.shields.io/badge/fase-1%20design-blue)](./ROADMAP.md)
-[![ADRs](https://img.shields.io/badge/ADRs-5-green)](./docs/adr)
+[![Fase](https://img.shields.io/badge/fase-2%20contratos-blue)](./ROADMAP.md)
+[![ADRs](https://img.shields.io/badge/ADRs-6-green)](./docs/adr)
 [![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-lightgrey)](./LICENSE)
 
 A maioria dos times descobre o custo de suas features de IA pela fatura — um número, um mês depois,
@@ -30,7 +30,8 @@ tenta de novo duas vezes seja corretamente visto como o caro. Este repositório 
 | Modelo de custo | Pronto | [docs/cost-model.md](./docs/cost-model.md) |
 | Dimensões de atribuição | Pronto | [docs/attribution.md](./docs/attribution.md) |
 | Diagramas de instrumentação | Pronto | [docs/diagrams](./docs/diagrams) |
-| Registros de Decisão de Arquitetura | 5 publicados | [docs/adr](./docs/adr) |
+| Registros de Decisão de Arquitetura | 6 publicados | [docs/adr](./docs/adr) |
+| Contratos — schema de evento de custo, contrato de resultado, abstração de precificação | Pronto | [docs/contracts](./docs/contracts) |
 | Implementação de referência | Planejada — Fase 3 | [ROADMAP.md](./ROADMAP.md) |
 
 ## A ideia
@@ -64,8 +65,8 @@ que mostra só o gasto total esconde o desperdício. Um construído sobre custo-
 
 Quatro fases, acompanhadas como milestones no GitHub. Detalhes em [ROADMAP.md](./ROADMAP.md).
 
-1. **Design** — o modelo de custo, as dimensões de atribuição, o ponto de instrumentação, os ADRs
-2. **Contratos** — o schema do evento de custo e o contrato de resultado que define uma tarefa bem-sucedida
+1. **Design** — o modelo de custo, as dimensões de atribuição, o ponto de instrumentação, os ADRs — concluído
+2. **Contratos** — o schema do evento de custo, o contrato de resultado e a abstração de precificação — concluído
 3. **Implementação de referência** — um boundary que captura eventos de custo e um painel sobre eles
 4. **Validação** — injetar uma regressão de custo e uma tempestade de retries; provar que os alertas pegam
 
